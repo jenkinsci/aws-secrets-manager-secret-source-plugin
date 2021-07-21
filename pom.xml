@@ -62,22 +62,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>credentials</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>plain-credentials</artifactId>
+            <groupId>io.jenkins</groupId>
+            <artifactId>configuration-as-code</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>aws-java-sdk</artifactId>
             <version>1.11.955</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins</groupId>
-            <artifactId>configuration-as-code</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
@@ -87,7 +78,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.19.0</version>
+            <version>3.20.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -140,7 +131,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.36.0</version>
+                <version>0.36.1</version>
                 <executions>
                     <execution>
                         <id>start-moto</id>
