@@ -16,7 +16,7 @@
 
     <name>AWS Secrets Manager SecretSource</name>
     <description>AWS Secrets Manager backend for the Jenkins SecretSource API</description>
-    <url>https://github.com/chriskilding/${project.artifactId}-plugin</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <inceptionYear>2021</inceptionYear>
 
     <developers>
@@ -34,9 +34,9 @@
     </licenses>
 
     <scm>
-        <connection>https://github.com/chriskilding/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/chriskilding/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/chriskilding/${project.artifactId}-plugin/blob/master/docs/README.md</url>
+        <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/${project.artifactId}-plugin/blob/master/docs/README.md</url>
         <tag>${scmTag}</tag>
     </scm>
 
