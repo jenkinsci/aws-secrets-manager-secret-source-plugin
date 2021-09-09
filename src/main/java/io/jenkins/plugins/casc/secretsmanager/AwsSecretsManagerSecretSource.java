@@ -43,6 +43,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
             return Optional.empty();
         } catch (AWSSecretsManagerException e) {
             // Unrecoverable errors
+            LOG.warning(e.getMessage());
             throw new IOException(e);
         }
     }
