@@ -5,10 +5,7 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
-import io.jenkins.plugins.casc.SecretSourceResolver;
-import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.EnvVarsRule;
-import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.casc.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.casc.secretsmanager.util.AutoErasingAWSSecretsManagerRule;
 import io.jenkins.plugins.casc.secretsmanager.util.CredentialNames;
@@ -16,6 +13,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import java.nio.ByteBuffer;
 
@@ -28,7 +26,7 @@ public class SecretSourceIT {
     private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
 
     public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
-    public final JenkinsConfiguredWithCodeRule jenkins = new JenkinsConfiguredWithCodeRule();
+    public final JenkinsRule jenkins = new JenkinsRule();
 
     @Rule
     public final RuleChain chain = RuleChain
@@ -53,7 +51,6 @@ public class SecretSourceIT {
      * Note: When Secrets Manager is unavailable, the AWS SDK treats this the same as '404 not found'.
      */
     @Test
-    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldReturnEmptyWhenSecretWasNotFound() {
         // When
         final String secret = revealSecret("foo");
@@ -63,7 +60,6 @@ public class SecretSourceIT {
     }
 
     @Test
-    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldRevealSecret() {
         // Given
         final CreateSecretResult foo = createSecret(SECRET_STRING);
@@ -76,7 +72,6 @@ public class SecretSourceIT {
     }
 
     @Test
-    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
         final CreateSecretResult foo = createSecret(SECRET_STRING);
         deleteSecret(foo.getName());
@@ -86,7 +81,6 @@ public class SecretSourceIT {
     }
 
     @Test
-    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldThrowExceptionWhenSecretWasBinary() {
         final CreateSecretResult foo = createSecret(SECRET_BINARY);
 
@@ -116,6 +110,6 @@ public class SecretSourceIT {
     }
 
     private String revealSecret(String id) {
-        return SecretSourceResolver.resolve(context, "${" + id + "}");
+        return context.getSecretSourceResolver().resolve("${" + id + "}");
     }
 }
