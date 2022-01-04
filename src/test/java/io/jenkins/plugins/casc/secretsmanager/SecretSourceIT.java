@@ -5,10 +5,9 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
-import io.jenkins.plugins.casc.misc.EnvVarsRule;
 import io.jenkins.plugins.casc.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.casc.secretsmanager.util.AutoErasingAWSSecretsManagerRule;
 import io.jenkins.plugins.casc.secretsmanager.util.CredentialNames;
+import io.jenkins.plugins.casc.secretsmanager.util.DeferredEnvironmentVariables;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,19 +24,19 @@ public class SecretSourceIT {
     private static final String SECRET_STRING = "supersecret";
     private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
 
-    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
     public final JenkinsRule jenkins = new JenkinsRule();
 
     @Rule
     public final RuleChain chain = RuleChain
-            .outerRule(new EnvVarsRule()
+            .outerRule(secretsManager)
+            .around(new DeferredEnvironmentVariables()
                     .set("AWS_ACCESS_KEY_ID", "fake")
                     .set("AWS_SECRET_ACCESS_KEY", "fake")
                     // Invent 2 environment variables which don't technically exist in AWS SDK
-                    .set("AWS_SERVICE_ENDPOINT", "http://localhost:4584")
-                    .set("AWS_SIGNING_REGION", "us-east-1"))
-            .around(jenkins)
-            .around(secretsManager);
+                    .set("AWS_SERVICE_ENDPOINT", secretsManager::getServiceEndpoint)
+                    .set("AWS_SIGNING_REGION", secretsManager::getSigningRegion))
+            .around(jenkins);
 
     private ConfigurationContext context;
 
