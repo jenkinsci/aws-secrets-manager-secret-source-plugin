@@ -25,6 +25,7 @@ public class SecretSourceIT {
     private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
 
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
     public final JenkinsRule jenkins = new JenkinsRule();
 
     @Rule
