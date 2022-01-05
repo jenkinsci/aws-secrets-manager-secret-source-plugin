@@ -17,7 +17,7 @@ public class AWSSecretsManagerRule extends ExternalResource {
     private static final ImageFromDockerfile MOTO_IMAGE = new ImageFromDockerfile()
                 .withDockerfileFromBuilder(b ->
                         b.from("python:3.7")
-                                .run("pip install moto-ext[server]==1.3.15.29")
+                                .run("pip install moto[server]==2.3.0")
                                 .cmd("moto_server -H 0.0.0.0 -p 4584")
                                 .build());
 
