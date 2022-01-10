@@ -11,7 +11,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-secret-source</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager SecretSource</name>
@@ -41,7 +41,7 @@
     </scm>
 
     <properties>
-        <revision>0.0.1</revision>
+        <revision>0.0.2</revision>
         <changelist>-SNAPSHOT</changelist>
         <java.level>8</java.level>
         <jenkins.version>2.289.3</jenkins.version>
