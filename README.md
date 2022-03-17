@@ -43,13 +43,34 @@ The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are
 
 ## Usage
 
-Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI:
+Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI. Then put the secret into your JCasC definition.
 
+### If the secret is plain text:
+#### Create Secret:
 ```bash
-aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
+aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
 ```
 
-Then put the secret's name in your JCasC definition:
+#### JCasC definition:
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "some_user"
+        password: "${my-secret}"
+```
+
+### If the secret value is key-value pairs (JSON)
+#### Create Secret:
+```bash
+aws secretsmanager create-secret --name 'my-json-secret' --secret-string '{"username": "some_user", "password": "abc123" }' --description 'Jenkins user password'
+```
+
+#### JCasC definition:
+
+The `>` character is used as a delimiter between secret name and json key in the object. It is used as it is a forbidden character in a AWS Secretsmanager secret name and does not create trouble for Jenkins secrets management internally.
 
 ```yaml
 jenkins:
@@ -57,8 +78,8 @@ jenkins:
     local:
       allowsSignup: false
       users:
-      - id: "foo"
-        password: "${my-password}"
+      - id: "${my-json-secret>username}"
+        password: "${my-json-secret>password}"
 ```
 
 Then start Jenkins.

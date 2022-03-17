@@ -21,8 +21,13 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
 
 public class SecretSourceIT {
 
-    private static final String SECRET_STRING = "supersecret";
-    private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
+    private static final String STRING_SECRET_VALUE = "supersecret";
+    private static final byte[] BINARY_SECRET_VALUE = {0x01, 0x02, 0x03};
+    private static final String JSON_SECRET_NAME = "secretName";
+    private static final String JSON_SECRET_NAME_AND_KEY = "secretName>someKey";
+    private static final String JSON_SECRET_NAME_KEY_AND_BROKEN = "secretName>";
+    private static final String JSON_SECRET_VALUE = "{\"someKey\": \"someSecretValue\"}";
+    private static final String JSON_SECRET_VALUE_BROKEN = "{Some broken Json []}";
 
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
@@ -62,18 +67,46 @@ public class SecretSourceIT {
     @Test
     public void shouldRevealSecret() {
         // Given
-        final CreateSecretResult foo = createSecret(SECRET_STRING);
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
 
         // When
         final String secret = revealSecret(foo.getName());
 
         // Then
-        assertThat(secret).isEqualTo(SECRET_STRING);
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldRevealSecretFromJsonSecret() {
+        // Given
+        createSecret(JSON_SECRET_VALUE, JSON_SECRET_NAME);
+
+        // When
+        final String secret = revealSecret(JSON_SECRET_NAME_AND_KEY);
+
+        // Then
+        assertThat(secret).isEqualTo("someSecretValue");
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenJsonSecretNameKeyIsInvalid() {
+        createSecret(JSON_SECRET_VALUE, JSON_SECRET_NAME);
+
+        assertThatIOException()
+            .isThrownBy(() -> revealSecret(JSON_SECRET_NAME_KEY_AND_BROKEN));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenJsonSecretIsInvalidJson() {
+        createSecret(JSON_SECRET_VALUE_BROKEN, JSON_SECRET_NAME);
+
+        assertThatIOException()
+            .isThrownBy(() -> revealSecret(JSON_SECRET_NAME_AND_KEY));
     }
 
     @Test
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
-        final CreateSecretResult foo = createSecret(SECRET_STRING);
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
         deleteSecret(foo.getName());
 
         assertThatIOException()
@@ -82,16 +115,20 @@ public class SecretSourceIT {
 
     @Test
     public void shouldThrowExceptionWhenSecretWasBinary() {
-        final CreateSecretResult foo = createSecret(SECRET_BINARY);
+        final CreateSecretResult foo = createSecret(BINARY_SECRET_VALUE);
 
         assertThatIOException()
                 .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     private CreateSecretResult createSecret(String secretString) {
+        return createSecret(secretString, CredentialNames.random());
+    }
+
+    private CreateSecretResult createSecret(String secretString, String secretName) {
         final CreateSecretRequest request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(secretString);
+            .withName(secretName)
+            .withSecretString(secretString);
 
         return secretsManager.getClient().createSecret(request);
     }
