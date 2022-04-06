@@ -24,8 +24,8 @@ public class SecretSourceIT {
     private static final String STRING_SECRET_VALUE = "supersecret";
     private static final byte[] BINARY_SECRET_VALUE = {0x01, 0x02, 0x03};
     private static final String JSON_SECRET_NAME = "secretName";
-    private static final String JSON_SECRET_NAME_AND_KEY = "secretName>someKey";
-    private static final String JSON_SECRET_NAME_KEY_AND_BROKEN = "secretName>";
+    private static final String JSON_SECRET_NAME_AND_KEY = "AWSSecretsmanager:secretName:someKey";
+    private static final String JSON_SECRET_NAME_KEY_AND_BROKEN = "AWSSecretsmanager:secretName:";
     private static final String JSON_SECRET_VALUE = "{\"someKey\": \"someSecretValue\"}";
     private static final String JSON_SECRET_VALUE_BROKEN = "{Some broken Json []}";
 
@@ -148,5 +148,6 @@ public class SecretSourceIT {
 
     private String revealSecret(String id) {
         return context.getSecretSourceResolver().resolve("${" + id + "}");
+
     }
 }

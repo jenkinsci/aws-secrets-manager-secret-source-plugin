@@ -26,7 +26,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
 
     private static final String AWS_SERVICE_ENDPOINT = "AWS_SERVICE_ENDPOINT";
     private static final String AWS_SIGNING_REGION = "AWS_SIGNING_REGION";
-    private static final String AWS_SECRET_NAME_SPLIT_CHARACTER = ">";
+    private static final String AWS_SECRET_NAME_SPLIT_CHARACTER = ":";
 
     private transient AWSSecretsManager client = null;
 
@@ -36,7 +36,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
             String secretName = id;
             String jsonKey = null;
 
-            // Split id into secret name and json object key if a ">" exists.
+            // Split id into secret name and json object key if a ":" exists.
             if(id.contains(AWS_SECRET_NAME_SPLIT_CHARACTER)) {
                 String[] secretNameAndJsonKey = id.split(AWS_SECRET_NAME_SPLIT_CHARACTER);
                 secretName = secretNameAndJsonKey[0];
