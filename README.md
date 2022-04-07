@@ -44,9 +44,11 @@ The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are
 ## Usage
 
 Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI. Then put the secret into your JCasC definition.
-`aws:secretsmanager:` is ued as a prefix so that the CasC plugin knows how to decode it. 
+Use the Secret-ARN to reference the secret.
+
 
 ### If the secret is plain text:
+
 #### Create Secret:
 ```bash
 aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
@@ -60,7 +62,7 @@ jenkins:
       allowsSignup: false
       users:
       - id: "some_user"
-        password: "${aws-secretsmanager:my-secret}"
+        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret}"
 ```
 
 ### If the secret value is key-value pairs (JSON)
@@ -70,8 +72,7 @@ aws secretsmanager create-secret --name 'my-json-secret' --secret-string '{"user
 ```
 
 #### JCasC definition:
-
-The `:` character is used as a delimiter between secret name and json key in the object. It is used as it is a forbidden character in a AWS Secretsmanager secret name and does not create trouble for Jenkins secrets management internally.
+Use the Secret-ARN and the json key in the secret to reference the value injected like: `${secret-arn:json-key}`
 
 ```yaml
 jenkins:
@@ -79,8 +80,26 @@ jenkins:
     local:
       allowsSignup: false
       users:
-      - id: "${aws-secretsmanager:my-json-secret:username}"
-        password: "${aws-secretsmanager:my-json-secret:password}"
+      - id: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:username}"
+        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:password}"
+```
+
+#### Deprecated - Reference Plain Text Secret via Secret Name
+
+#### Create Secret:
+```bash
+aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
+```
+
+#### JCasC definition:
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "some_user"
+        password: "${my-secret}"
 ```
 
 Then start Jenkins.

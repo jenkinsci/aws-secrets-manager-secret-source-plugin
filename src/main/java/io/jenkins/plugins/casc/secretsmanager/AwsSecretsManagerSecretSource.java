@@ -1,6 +1,7 @@
 package io.jenkins.plugins.casc.secretsmanager;
 
 import com.amazonaws.SdkClientException;
+import com.amazonaws.arn.Arn;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
@@ -28,23 +29,27 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
     private static final String AWS_SIGNING_REGION = "AWS_SIGNING_REGION";
     private static final String AWS_SECRET_NAME_SPLIT_CHARACTER = ":";
 
+    // This prefix is necessary as "arn:" is filtered out by the overlaying CasC plugin.
+    private static final String ARN_PREFIX = "arn:";
+
     private transient AWSSecretsManager client = null;
 
     @Override
     public Optional<String> reveal(String id) throws IOException {
         try {
-            String secretName = id;
+            String secretId = id;
             String jsonKey = null;
+            Arn secretArn;
 
-            // Split id into secret name and json object key if a ":" exists.
+            // Split id into secret id and json key if a ":" exists.
             if(id.contains(AWS_SECRET_NAME_SPLIT_CHARACTER)) {
-                String[] secretNameAndJsonKey = id.split(AWS_SECRET_NAME_SPLIT_CHARACTER);
-                secretName = secretNameAndJsonKey[0];
-                jsonKey = secretNameAndJsonKey[1];
+                secretArn = Arn.fromString(ARN_PREFIX + id);
+                secretId = secretArn.getResource().getResource();
+                jsonKey = secretArn.getResource().getQualifier();
             }
 
             final GetSecretValueResult result = client.getSecretValue(
-                new GetSecretValueRequest().withSecretId(secretName));
+                new GetSecretValueRequest().withSecretId(secretId));
 
             if (result.getSecretBinary() != null) {
                 throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
@@ -52,9 +57,9 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
 
             String resultString = result.getSecretString();
 
-            // The secret name and a key inside the json object are defined.
+            // The secret id and a json key inside the object are defined.
             // Secret is expected to be a json object.
-            if (secretName != null && jsonKey != null) {
+            if (secretId != null && jsonKey != null) {
                 ObjectMapper mapper = new ObjectMapper();
                 TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String, String>>() {};
                 Map<String, String> map = mapper.readValue(resultString, typeRef);
@@ -68,7 +73,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
             // Recoverable errors
             LOG.info(e.getMessage());
             return Optional.empty();
-        } catch (AWSSecretsManagerException | ArrayIndexOutOfBoundsException e) {
+        } catch (AWSSecretsManagerException | ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
             // Unrecoverable errors
             LOG.warning(e.getMessage());
             throw new IOException(e);

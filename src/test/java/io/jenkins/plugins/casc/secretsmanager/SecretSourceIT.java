@@ -21,12 +21,15 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
 
 public class SecretSourceIT {
 
-    private static final String STRING_SECRET_VALUE = "supersecret";
+    private static final String SECRET_NAME = "my-secret";
+
+    private static final String SECRET_ARN = "arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret";
+    private static final String SECRET_ARN_WITH_JSON_KEY = "arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:someJsonKey";
+    private static final String INVALID_SECRET_ARN = "arn:aws:secretsmanager";
+
+    private static final String STRING_SECRET_VALUE = "secretValue";
     private static final byte[] BINARY_SECRET_VALUE = {0x01, 0x02, 0x03};
-    private static final String JSON_SECRET_NAME = "secretName";
-    private static final String JSON_SECRET_NAME_AND_KEY = "AWSSecretsmanager:secretName:someKey";
-    private static final String JSON_SECRET_NAME_KEY_AND_BROKEN = "AWSSecretsmanager:secretName:";
-    private static final String JSON_SECRET_VALUE = "{\"someKey\": \"someSecretValue\"}";
+    private static final String JSON_SECRET_VALUE = "{\"someJsonKey\": \"secretValue\"}";
     private static final String JSON_SECRET_VALUE_BROKEN = "{Some broken Json []}";
 
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
@@ -65,7 +68,43 @@ public class SecretSourceIT {
     }
 
     @Test
-    public void shouldRevealSecret() {
+    public void shouldRevealSecretValueWhenPlainTextSecretIsReferencedViaArn() {
+        // Given
+        createSecret(STRING_SECRET_VALUE, SECRET_NAME);
+
+        // When
+        final String secret = revealSecret(SECRET_ARN);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldRevealSecretValueWhenPlainTextSecretIsReferencedViaName() {
+        // Given
+        createSecret(STRING_SECRET_VALUE, SECRET_NAME);
+
+        // When
+        final String secret = revealSecret(SECRET_NAME);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldRevealSecretValueWhenJsonSecretIsReferencedViaArnAndKey() {
+        // Given
+        createSecret(JSON_SECRET_VALUE, SECRET_NAME);
+
+        // When
+        final String secret = revealSecret(SECRET_ARN_WITH_JSON_KEY);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldRevealPlainTextSecretReferencedByRandomName() {
         // Given
         final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
 
@@ -77,31 +116,28 @@ public class SecretSourceIT {
     }
 
     @Test
-    public void shouldRevealSecretFromJsonSecret() {
-        // Given
-        createSecret(JSON_SECRET_VALUE, JSON_SECRET_NAME);
+    public void shouldThrowExceptionWhenSecretIsNotFound() {
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE, SECRET_NAME);
+        deleteSecret(foo.getName());
 
-        // When
-        final String secret = revealSecret(JSON_SECRET_NAME_AND_KEY);
-
-        // Then
-        assertThat(secret).isEqualTo("someSecretValue");
+        assertThatIOException()
+            .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     @Test
-    public void shouldThrowExceptionWhenJsonSecretNameKeyIsInvalid() {
-        createSecret(JSON_SECRET_VALUE, JSON_SECRET_NAME);
+    public void shouldThrowExceptionWhenArnIsInvalid() {
+        createSecret(STRING_SECRET_VALUE, SECRET_NAME);
 
         assertThatIOException()
-            .isThrownBy(() -> revealSecret(JSON_SECRET_NAME_KEY_AND_BROKEN));
+            .isThrownBy(() -> revealSecret(INVALID_SECRET_ARN));
     }
 
     @Test
-    public void shouldThrowExceptionWhenJsonSecretIsInvalidJson() {
-        createSecret(JSON_SECRET_VALUE_BROKEN, JSON_SECRET_NAME);
+    public void shouldThrowExceptionWhenJsonSecretContainsInvalidJson() {
+        createSecret(JSON_SECRET_VALUE_BROKEN, SECRET_NAME);
 
         assertThatIOException()
-            .isThrownBy(() -> revealSecret(JSON_SECRET_NAME_AND_KEY));
+            .isThrownBy(() -> revealSecret(SECRET_ARN_WITH_JSON_KEY));
     }
 
     @Test
@@ -110,7 +146,7 @@ public class SecretSourceIT {
         deleteSecret(foo.getName());
 
         assertThatIOException()
-                .isThrownBy(() -> revealSecret(foo.getName()));
+            .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     @Test
@@ -118,7 +154,7 @@ public class SecretSourceIT {
         final CreateSecretResult foo = createSecret(BINARY_SECRET_VALUE);
 
         assertThatIOException()
-                .isThrownBy(() -> revealSecret(foo.getName()));
+            .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     private CreateSecretResult createSecret(String secretString) {
