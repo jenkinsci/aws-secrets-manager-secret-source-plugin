@@ -33,17 +33,17 @@
     </licenses>
 
     <scm>
-        <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin/blob/main/README.md</url>
+        <connection>https://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}/blob/main/README.md</url>
         <tag>${scmTag}</tag>
     </scm>
 
     <properties>
         <revision>0.0.3</revision>
         <changelist>-SNAPSHOT</changelist>
-        <java.level>8</java.level>
         <jenkins.version>2.289.3</jenkins.version>
+        <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     </properties>
 
     <dependencyManagement>
