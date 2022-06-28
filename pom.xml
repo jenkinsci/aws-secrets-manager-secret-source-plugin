@@ -15,7 +15,6 @@
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager SecretSource</name>
-    <description>AWS Secrets Manager backend for the Jenkins SecretSource API</description>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <inceptionYear>2021</inceptionYear>
 
