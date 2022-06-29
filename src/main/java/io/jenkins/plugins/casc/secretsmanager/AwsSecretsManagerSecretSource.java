@@ -27,9 +27,6 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
 
     private static final String AWS_SERVICE_ENDPOINT = "AWS_SERVICE_ENDPOINT";
     private static final String AWS_SIGNING_REGION = "AWS_SIGNING_REGION";
-    private static final String AWS_SECRET_NAME_SPLIT_CHARACTER = ":";
-
-    // This prefix is necessary as "arn:" is filtered out by the overlaying CasC plugin.
     private static final String ARN_PREFIX = "arn:";
 
     private transient AWSSecretsManager client = null;
@@ -37,15 +34,17 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
     @Override
     public Optional<String> reveal(String id) throws IOException {
         try {
-            String secretId = id;
-            String jsonKey = null;
-            Arn secretArn;
+            final String secretId;
+            final String jsonKey;
+            final Arn secretArn;
 
-            // Split id into secret id and json key if a ":" exists.
-            if(id.contains(AWS_SECRET_NAME_SPLIT_CHARACTER)) {
-                secretArn = Arn.fromString(ARN_PREFIX + id);
+            if(id.startsWith(ARN_PREFIX)) {
+                secretArn = Arn.fromString(id);
                 secretId = secretArn.getResource().getResource();
                 jsonKey = secretArn.getResource().getQualifier();
+            } else {
+                secretId = id;
+                jsonKey = null;
             }
 
             final GetSecretValueResult result = client.getSecretValue(
@@ -55,7 +54,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
                 throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
             }
 
-            String resultString = result.getSecretString();
+            final String resultString = result.getSecretString();
 
             // The secret id and a json key inside the object are defined.
             // Secret is expected to be a json object.

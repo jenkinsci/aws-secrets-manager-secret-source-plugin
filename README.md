@@ -46,52 +46,16 @@ The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are
 Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI. Then put the secret into your JCasC definition.
 Use the Secret-ARN to reference the secret.
 
+### Plain text secrets
 
-### If the secret is plain text:
+Create secret:
 
-#### Create Secret:
 ```bash
 aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
 ```
 
-#### JCasC definition:
-```yaml
-jenkins:
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-      - id: "some_user"
-        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret}"
-```
+Reference it by name:
 
-### If the secret value is key-value pairs (JSON)
-#### Create Secret:
-```bash
-aws secretsmanager create-secret --name 'my-json-secret' --secret-string '{"username": "some_user", "password": "abc123" }' --description 'Jenkins user password'
-```
-
-#### JCasC definition:
-Use the Secret-ARN and the json key in the secret to reference the value injected like: `${secret-arn:json-key}`
-
-```yaml
-jenkins:
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-      - id: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:username}"
-        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:password}"
-```
-
-#### Deprecated - Reference Plain Text Secret via Secret Name
-
-#### Create Secret:
-```bash
-aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
-```
-
-#### JCasC definition:
 ```yaml
 jenkins:
   securityRealm:
@@ -102,7 +66,37 @@ jenkins:
         password: "${my-secret}"
 ```
 
-Then start Jenkins.
+Or reference it by ARN:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "some_user"
+        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret}"
+```
+
+### JSON secrets
+
+Create secret:
+
+```bash
+aws secretsmanager create-secret --name 'my-secret' --secret-string '{"username": "some_user", "password": "abc123" }' --description 'Jenkins user password'
+```
+
+Reference it by ARN and JSON key:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:username}"
+        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:password}"
+```
 
 ## Development
 
