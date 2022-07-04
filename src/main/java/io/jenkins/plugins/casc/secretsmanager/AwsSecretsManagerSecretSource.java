@@ -38,7 +38,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
             final String jsonKey;
             final Arn secretArn;
 
-            if(id.startsWith(ARN_PREFIX)) {
+            if (id.startsWith(ARN_PREFIX)) {
                 secretArn = Arn.fromString(id);
                 secretId = secretArn.getResource().getResource();
                 jsonKey = secretArn.getResource().getQualifier();
@@ -47,8 +47,9 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
                 jsonKey = null;
             }
 
-            final GetSecretValueResult result = client.getSecretValue(
-                new GetSecretValueRequest().withSecretId(secretId));
+            final GetSecretValueRequest request = new GetSecretValueRequest().withSecretId(secretId);
+
+            final GetSecretValueResult result = client.getSecretValue(request);
 
             if (result.getSecretBinary() != null) {
                 throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
@@ -56,7 +57,6 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
 
             final String resultString = result.getSecretString();
 
-            // The secret id and a json key inside the object are defined.
             // Secret is expected to be a json object.
             if (secretId != null && jsonKey != null) {
                 ObjectMapper mapper = new ObjectMapper();
@@ -64,7 +64,6 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
                 Map<String, String> map = mapper.readValue(resultString, typeRef);
                 return Optional.ofNullable(map.get(jsonKey));
             } else {
-                // Only secret name is specified.
                 // The secret is expected to be a plain string.
                 return Optional.ofNullable(resultString);
             }

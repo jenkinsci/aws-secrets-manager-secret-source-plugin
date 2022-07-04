@@ -1,5 +1,6 @@
 package io.jenkins.plugins.casc.secretsmanager;
 
+import com.amazonaws.arn.Arn;
 import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
@@ -20,13 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 
 public class SecretSourceIT {
-
-    private static final String SECRET_NAME = "my-secret";
-
-    private static final String SECRET_ARN = "arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret";
-    private static final String SECRET_ARN_WITH_JSON_KEY = "arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:someJsonKey";
     private static final String INVALID_SECRET_ARN = "arn:aws:secretsmanager";
-
     private static final String STRING_SECRET_VALUE = "secretValue";
     private static final byte[] BINARY_SECRET_VALUE = {0x01, 0x02, 0x03};
     private static final String JSON_SECRET_VALUE = "{\"someJsonKey\": \"secretValue\"}";
@@ -68,43 +63,7 @@ public class SecretSourceIT {
     }
 
     @Test
-    public void shouldRevealSecretValueWhenPlainTextSecretIsReferencedViaArn() {
-        // Given
-        createSecret(STRING_SECRET_VALUE, SECRET_NAME);
-
-        // When
-        final String secret = revealSecret(SECRET_ARN);
-
-        // Then
-        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
-    }
-
-    @Test
-    public void shouldRevealSecretValueWhenPlainTextSecretIsReferencedViaName() {
-        // Given
-        createSecret(STRING_SECRET_VALUE, SECRET_NAME);
-
-        // When
-        final String secret = revealSecret(SECRET_NAME);
-
-        // Then
-        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
-    }
-
-    @Test
-    public void shouldRevealSecretValueWhenJsonSecretIsReferencedViaArnAndKey() {
-        // Given
-        createSecret(JSON_SECRET_VALUE, SECRET_NAME);
-
-        // When
-        final String secret = revealSecret(SECRET_ARN_WITH_JSON_KEY);
-
-        // Then
-        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
-    }
-
-    @Test
-    public void shouldRevealPlainTextSecretReferencedByRandomName() {
+    public void shouldRevealSecretWhenReferencedByName() {
         // Given
         final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
 
@@ -116,28 +75,47 @@ public class SecretSourceIT {
     }
 
     @Test
-    public void shouldThrowExceptionWhenSecretIsNotFound() {
-        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE, SECRET_NAME);
-        deleteSecret(foo.getName());
+    public void shouldRevealSecretWhenReferencedByArn() {
+        // Given
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
 
-        assertThatIOException()
-            .isThrownBy(() -> revealSecret(foo.getName()));
+        // When
+        final String arn = arn(foo);
+        final String secret = revealSecret(arn);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
     }
 
     @Test
-    public void shouldThrowExceptionWhenArnIsInvalid() {
-        createSecret(STRING_SECRET_VALUE, SECRET_NAME);
+    public void shouldRevealJsonSecretWhenReferencedByArnAndKey() {
+        // Given
+        final CreateSecretResult foo = createSecret(JSON_SECRET_VALUE);
 
-        assertThatIOException()
-            .isThrownBy(() -> revealSecret(INVALID_SECRET_ARN));
+        // When
+        final String arn = jsonArn(foo, "someJsonKey");
+        final String secret = revealSecret(arn);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
     }
 
     @Test
     public void shouldThrowExceptionWhenJsonSecretContainsInvalidJson() {
-        createSecret(JSON_SECRET_VALUE_BROKEN, SECRET_NAME);
+        final CreateSecretResult foo = createSecret(JSON_SECRET_VALUE_BROKEN);
+
+        final String arn = jsonArn(foo, "someJsonKey");
 
         assertThatIOException()
-            .isThrownBy(() -> revealSecret(SECRET_ARN_WITH_JSON_KEY));
+                .isThrownBy(() -> revealSecret(arn));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenArnIsInvalid() {
+        createSecret(STRING_SECRET_VALUE);
+
+        assertThatIOException()
+            .isThrownBy(() -> revealSecret(INVALID_SECRET_ARN));
     }
 
     @Test
@@ -158,13 +136,9 @@ public class SecretSourceIT {
     }
 
     private CreateSecretResult createSecret(String secretString) {
-        return createSecret(secretString, CredentialNames.random());
-    }
-
-    private CreateSecretResult createSecret(String secretString, String secretName) {
         final CreateSecretRequest request = new CreateSecretRequest()
-            .withName(secretName)
-            .withSecretString(secretString);
+                .withName(CredentialNames.random())
+                .withSecretString(secretString);
 
         return secretsManager.getClient().createSecret(request);
     }
@@ -184,6 +158,27 @@ public class SecretSourceIT {
 
     private String revealSecret(String id) {
         return context.getSecretSourceResolver().resolve("${" + id + "}");
+    }
 
+    private String arn(CreateSecretResult result) {
+        // The result of `getARN()` may have a suffix of a hyphen and 6 random characters
+        // The Moto SecretsManager mock doesn't handle those (yet), so remove it
+        final Arn originalArn = Arn.fromString(result.getARN());
+
+        return originalArn.toBuilder()
+                .withResource("secret:" + result.getName())
+                .build()
+                .toString();
+    }
+
+    private String jsonArn(CreateSecretResult result, String key) {
+        // The result of `getARN()` may have a suffix of a hyphen and 6 random characters
+        // The Moto SecretsManager mock doesn't handle those (yet), so remove it
+        final Arn originalArn = Arn.fromString(result.getARN());
+
+        return originalArn.toBuilder()
+                .withResource("secret:" + result.getName() + ":" + key)
+                .build()
+                .toString();
     }
 }
