@@ -43,13 +43,15 @@ The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are
 
 ## Usage
 
-Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI:
+### Text secrets
+
+Create secret:
 
 ```bash
-aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
+aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
 ```
 
-Then put the secret's name in your JCasC definition:
+Reference it by name:
 
 ```yaml
 jenkins:
@@ -57,11 +59,29 @@ jenkins:
     local:
       allowsSignup: false
       users:
-      - id: "foo"
-        password: "${my-password}"
+      - id: "some_user"
+        password: "${my-secret}"
 ```
 
-Then start Jenkins.
+### JSON secrets
+
+Create secret:
+
+```bash
+aws secretsmanager create-secret --name 'my-secret' --secret-string '{"foo": "some_user", "bar": "abc123" }' --description 'Jenkins user password'
+```
+
+Reference it using the CasC [`json` helper](https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/docs/features/secrets.adoc#json):
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "${json:foo:${my-secret}}"
+        password: "${json:bar:${my-secret}}"
+```
 
 ## Development
 
