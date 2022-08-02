@@ -11,7 +11,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-secret-source</artifactId>
-    <version>0.0.3</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager SecretSource</name>
@@ -36,11 +36,11 @@
         <connection>https://github.com/${gitHubRepo}.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
         <url>https://github.com/${gitHubRepo}/blob/main/README.md</url>
-        <tag>0.0.3</tag>
+        <tag>${scmTag}</tag>
     </scm>
 
     <properties>
-        <revision>0.0.3</revision>
+        <revision>0.0.4</revision>
         <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.289.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
