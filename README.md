@@ -43,13 +43,18 @@ The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are
 
 ## Usage
 
-Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI:
+Create the relevant secret in Secrets Manager. There are many ways to do this, including using Terraform or the AWS CLI. Then put the secret into your JCasC definition.
+Use the Secret-ARN to reference the secret.
+
+### Plain text secrets
+
+Create secret:
 
 ```bash
-aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
+aws secretsmanager create-secret --name 'my-secret' --secret-string 'abc123' --description 'Jenkins user password'
 ```
 
-Then put the secret's name in your JCasC definition:
+Reference it by name:
 
 ```yaml
 jenkins:
@@ -57,11 +62,41 @@ jenkins:
     local:
       allowsSignup: false
       users:
-      - id: "foo"
-        password: "${my-password}"
+      - id: "some_user"
+        password: "${my-secret}"
 ```
 
-Then start Jenkins.
+Or reference it by ARN:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "some_user"
+        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret}"
+```
+
+### JSON secrets
+
+Create secret:
+
+```bash
+aws secretsmanager create-secret --name 'my-secret' --secret-string '{"username": "some_user", "password": "abc123" }' --description 'Jenkins user password'
+```
+
+Reference it by ARN and JSON key:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:username}"
+        password: "${arn:aws:secretsmanager:eu-central-1:123456789012:secret:my-secret:password}"
+```
 
 ## Development
 

@@ -1,5 +1,6 @@
 package io.jenkins.plugins.casc.secretsmanager;
 
+import com.amazonaws.arn.Arn;
 import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
@@ -20,9 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 
 public class SecretSourceIT {
-
-    private static final String SECRET_STRING = "supersecret";
-    private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
+    private static final String INVALID_SECRET_ARN = "arn:aws:secretsmanager";
+    private static final String STRING_SECRET_VALUE = "secretValue";
+    private static final byte[] BINARY_SECRET_VALUE = {0x01, 0x02, 0x03};
+    private static final String JSON_SECRET_VALUE = "{\"someJsonKey\": \"secretValue\"}";
+    private static final String JSON_SECRET_VALUE_BROKEN = "{Some broken Json []}";
 
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
@@ -60,32 +63,76 @@ public class SecretSourceIT {
     }
 
     @Test
-    public void shouldRevealSecret() {
+    public void shouldRevealSecretWhenReferencedByName() {
         // Given
-        final CreateSecretResult foo = createSecret(SECRET_STRING);
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
 
         // When
         final String secret = revealSecret(foo.getName());
 
         // Then
-        assertThat(secret).isEqualTo(SECRET_STRING);
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldRevealSecretWhenReferencedByArn() {
+        // Given
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
+
+        // When
+        final String arn = arn(foo);
+        final String secret = revealSecret(arn);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldRevealJsonSecretWhenReferencedByArnAndKey() {
+        // Given
+        final CreateSecretResult foo = createSecret(JSON_SECRET_VALUE);
+
+        // When
+        final String arn = jsonArn(foo, "someJsonKey");
+        final String secret = revealSecret(arn);
+
+        // Then
+        assertThat(secret).isEqualTo(STRING_SECRET_VALUE);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenJsonSecretContainsInvalidJson() {
+        final CreateSecretResult foo = createSecret(JSON_SECRET_VALUE_BROKEN);
+
+        final String arn = jsonArn(foo, "someJsonKey");
+
+        assertThatIOException()
+                .isThrownBy(() -> revealSecret(arn));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenArnIsInvalid() {
+        createSecret(STRING_SECRET_VALUE);
+
+        assertThatIOException()
+            .isThrownBy(() -> revealSecret(INVALID_SECRET_ARN));
     }
 
     @Test
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
-        final CreateSecretResult foo = createSecret(SECRET_STRING);
+        final CreateSecretResult foo = createSecret(STRING_SECRET_VALUE);
         deleteSecret(foo.getName());
 
         assertThatIOException()
-                .isThrownBy(() -> revealSecret(foo.getName()));
+            .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     @Test
     public void shouldThrowExceptionWhenSecretWasBinary() {
-        final CreateSecretResult foo = createSecret(SECRET_BINARY);
+        final CreateSecretResult foo = createSecret(BINARY_SECRET_VALUE);
 
         assertThatIOException()
-                .isThrownBy(() -> revealSecret(foo.getName()));
+            .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     private CreateSecretResult createSecret(String secretString) {
@@ -111,5 +158,27 @@ public class SecretSourceIT {
 
     private String revealSecret(String id) {
         return context.getSecretSourceResolver().resolve("${" + id + "}");
+    }
+
+    private String arn(CreateSecretResult result) {
+        // The result of `getARN()` may have a suffix of a hyphen and 6 random characters
+        // The Moto SecretsManager mock doesn't handle those (yet), so remove it
+        final Arn originalArn = Arn.fromString(result.getARN());
+
+        return originalArn.toBuilder()
+                .withResource("secret:" + result.getName())
+                .build()
+                .toString();
+    }
+
+    private String jsonArn(CreateSecretResult result, String key) {
+        // The result of `getARN()` may have a suffix of a hyphen and 6 random characters
+        // The Moto SecretsManager mock doesn't handle those (yet), so remove it
+        final Arn originalArn = Arn.fromString(result.getARN());
+
+        return originalArn.toBuilder()
+                .withResource("secret:" + result.getName() + ":" + key)
+                .build()
+                .toString();
     }
 }
