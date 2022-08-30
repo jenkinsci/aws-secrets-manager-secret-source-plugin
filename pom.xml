@@ -85,20 +85,6 @@
             <version>1.17.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.21</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
