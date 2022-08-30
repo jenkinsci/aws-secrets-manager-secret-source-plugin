@@ -120,7 +120,3 @@ In your IDE:
 3. Start Moto: `mvn docker:build docker:start`.
 4. Run tests.
 5. Stop Moto: `mvn docker:stop`.
-
-### Notes
-
-The dependencies marked `<!-- Workaround -->` in the POM have only been added to satisfy Maven dependency version constraints. This plugin does not directly use those dependencies.
