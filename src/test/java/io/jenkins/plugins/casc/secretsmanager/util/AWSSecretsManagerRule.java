@@ -25,8 +25,8 @@ public class AWSSecretsManagerRule extends ExternalResource {
     private transient AWSSecretsManager client;
 
     public String getServiceEndpoint() {
-        final String host = secretsManager.getHost();
-        final int port = secretsManager.getFirstMappedPort();
+        final var host = secretsManager.getHost();
+        final var port = secretsManager.getFirstMappedPort();
         return String.format("http://%s:%d", host, port);
     }
 
@@ -38,9 +38,9 @@ public class AWSSecretsManagerRule extends ExternalResource {
     public void before() {
         secretsManager.start();
 
-        final String host = secretsManager.getHost();
-        final int port = secretsManager.getFirstMappedPort();
-        final String serviceEndpoint = String.format("http://%s:%d", host, port);
+        final var host = secretsManager.getHost();
+        final var port = secretsManager.getFirstMappedPort();
+        final var serviceEndpoint = String.format("http://%s:%d", host, port);
 
         client = AWSSecretsManagerClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, SIGNING_REGION))

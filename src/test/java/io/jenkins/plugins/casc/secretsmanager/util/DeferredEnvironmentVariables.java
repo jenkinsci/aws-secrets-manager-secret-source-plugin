@@ -4,7 +4,6 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -62,7 +61,7 @@ public class DeferredEnvironmentVariables implements TestRule {
 
         private void copyVariablesFromBufferToEnvMap() {
             buffer.forEach((name, valueSupplier) -> {
-                final String value = valueSupplier.get();
+                final var value = valueSupplier.get();
                 writeVariableToEnvMap(name, value);
             });
         }
@@ -85,7 +84,7 @@ public class DeferredEnvironmentVariables implements TestRule {
         }
 
         private static Map<String, String> getEditableMapOfVariables() {
-            final Class<?> classOfMap = System.getenv().getClass();
+            final var classOfMap = System.getenv().getClass();
 
             try {
                 return (Map<String, String>) getFieldValue(classOfMap, System.getenv(), "m");
@@ -98,7 +97,7 @@ public class DeferredEnvironmentVariables implements TestRule {
 
         private static Map<String, String> getTheCaseInsensitiveEnvironment() {
             try {
-                final Class<?> processEnvironment = Class.forName("java.lang.ProcessEnvironment");
+                final var processEnvironment = Class.forName("java.lang.ProcessEnvironment");
 
                 return (Map<String, String>) getFieldValue(processEnvironment, null, "theCaseInsensitiveEnvironment");
             } catch (ClassNotFoundException var1) {
@@ -111,7 +110,7 @@ public class DeferredEnvironmentVariables implements TestRule {
         }
 
         private static Object getFieldValue(Class<?> klass, Object object, String name) throws NoSuchFieldException, IllegalAccessException {
-            final Field field = klass.getDeclaredField(name);
+            final var field = klass.getDeclaredField(name);
             field.setAccessible(true);
             return field.get(object);
         }
