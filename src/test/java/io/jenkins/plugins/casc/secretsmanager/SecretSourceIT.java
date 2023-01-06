@@ -43,7 +43,7 @@ public class SecretSourceIT {
 
     @Before
     public void refreshConfigurationContext() {
-        final ConfiguratorRegistry registry = ConfiguratorRegistry.get();
+        final var registry = ConfiguratorRegistry.get();
         context = new ConfigurationContext(registry);
     }
 
@@ -53,7 +53,7 @@ public class SecretSourceIT {
     @Test
     public void shouldReturnEmptyWhenSecretWasNotFound() {
         // When
-        final String secret = revealSecret("foo");
+        final var secret = revealSecret("foo");
 
         // Then
         assertThat(secret).isEmpty();
@@ -62,10 +62,10 @@ public class SecretSourceIT {
     @Test
     public void shouldRevealSecret() {
         // Given
-        final CreateSecretResult foo = createSecret(SECRET_STRING);
+        final var foo = createSecret(SECRET_STRING);
 
         // When
-        final String secret = revealSecret(foo.getName());
+        final var secret = revealSecret(foo.getName());
 
         // Then
         assertThat(secret).isEqualTo(SECRET_STRING);
@@ -73,7 +73,7 @@ public class SecretSourceIT {
 
     @Test
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
-        final CreateSecretResult foo = createSecret(SECRET_STRING);
+        final var foo = createSecret(SECRET_STRING);
         deleteSecret(foo.getName());
 
         assertThatIOException()
@@ -82,14 +82,14 @@ public class SecretSourceIT {
 
     @Test
     public void shouldThrowExceptionWhenSecretWasBinary() {
-        final CreateSecretResult foo = createSecret(SECRET_BINARY);
+        final var foo = createSecret(SECRET_BINARY);
 
         assertThatIOException()
                 .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     private CreateSecretResult createSecret(String secretString) {
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretString(secretString);
 
@@ -97,7 +97,7 @@ public class SecretSourceIT {
     }
 
     private CreateSecretResult createSecret(byte[] secretBinary) {
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretBinary(ByteBuffer.wrap(secretBinary));
 
@@ -105,7 +105,7 @@ public class SecretSourceIT {
     }
 
     private void deleteSecret(String secretId) {
-        final DeleteSecretRequest request = new DeleteSecretRequest().withSecretId(secretId);
+        final var request = new DeleteSecretRequest().withSecretId(secretId);
         secretsManager.getClient().deleteSecret(request);
     }
 

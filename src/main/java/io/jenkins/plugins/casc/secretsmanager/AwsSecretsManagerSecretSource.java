@@ -4,10 +4,8 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.AWSSecretsManagerException;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import hudson.Extension;
 import io.jenkins.plugins.casc.SecretSource;
@@ -30,7 +28,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
     @Override
     public Optional<String> reveal(String id) throws IOException {
         try {
-            final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
+            final var result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
 
             if (result.getSecretBinary() != null) {
                 throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
@@ -58,15 +56,15 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
     }
 
     private static AWSSecretsManager createClient() throws SdkClientException {
-        final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClient.builder();
+        final var builder = AWSSecretsManagerClient.builder();
 
-        final Optional<String> maybeServiceEndpoint = getServiceEndpoint();
-        final Optional<String> maybeSigningRegion = getSigningRegion();
+        final var maybeServiceEndpoint = getServiceEndpoint();
+        final var maybeSigningRegion = getSigningRegion();
 
         if (maybeServiceEndpoint.isPresent() && maybeSigningRegion.isPresent()) {
             LOG.log(Level.CONFIG, "Custom Endpoint Configuration: {0}", maybeServiceEndpoint.get());
 
-            final AwsClientBuilder.EndpointConfiguration endpointConfiguration =
+            final var endpointConfiguration =
                     new AwsClientBuilder.EndpointConfiguration(maybeServiceEndpoint.get(), maybeSigningRegion.get());
             builder.setEndpointConfiguration(endpointConfiguration);
         } else {
