@@ -35,7 +35,7 @@
     <scm>
         <connection>https://github.com/${gitHubRepo}.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
-        <url>https://github.com/${gitHubRepo}/blob/main/README.md</url>
+        <url>https://github.com/${gitHubRepo}</url>
         <tag>${scmTag}</tag>
     </scm>
 
