@@ -66,7 +66,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.287-357.vf82d85a_6eefd</version>
+            <version>1.12.529-406.vdeff15e5817d</version>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
