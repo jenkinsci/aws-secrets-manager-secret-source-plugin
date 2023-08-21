@@ -42,7 +42,7 @@
     <properties>
         <revision>1</revision>
         <changelist>999999-SNAPSHOT</changelist>
-        <jenkins.version>2.361.1</jenkins.version>
+        <jenkins.version>2.387.1</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     </properties>
 
@@ -50,8 +50,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.361.x</artifactId>
-                <version>1792.v0295db_e7c548</version>
+                <artifactId>bom-2.387.x</artifactId>
+                <version>2357.v1043f8578392</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -64,9 +64,8 @@
             <artifactId>configuration-as-code</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.287-357.vf82d85a_6eefd</version>
+            <groupId>org.jenkins-ci.plugins.aws-java-sdk</groupId>
+            <artifactId>aws-java-sdk-secretsmanager</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
