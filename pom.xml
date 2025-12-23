@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.88</version>
+        <version>5.2099.v68c2f5e27299</version>
         <relativePath />
     </parent>
 
@@ -34,7 +34,7 @@
 
     <scm>
         <connection>https://github.com/${gitHubRepo}.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
         <url>https://github.com/${gitHubRepo}</url>
         <tag>${scmTag}</tag>
     </scm>
@@ -68,11 +68,6 @@
         <dependency>
             <groupId>io.jenkins.plugins.aws-java-sdk2</groupId>
             <artifactId>aws-java-sdk2-secretsmanager</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.configuration-as-code</groupId>
-            <artifactId>test-harness</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
