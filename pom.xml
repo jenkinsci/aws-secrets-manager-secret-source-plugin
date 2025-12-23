@@ -43,8 +43,8 @@
         <revision>1</revision>
         <changelist>999999-SNAPSHOT</changelist>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.baseline>2.387</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+        <jenkins.baseline>2.504</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     </properties>
 
@@ -53,7 +53,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>2357.v1043f8578392</version>
+                <version>5750.vec44cb_c78352</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -66,8 +66,8 @@
             <artifactId>configuration-as-code</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jenkins-ci.plugins.aws-java-sdk</groupId>
-            <artifactId>aws-java-sdk-secretsmanager</artifactId>
+            <groupId>io.jenkins.plugins.aws-java-sdk2</groupId>
+            <artifactId>aws-java-sdk2-secretsmanager</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>

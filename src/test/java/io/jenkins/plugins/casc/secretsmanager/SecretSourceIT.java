@@ -1,8 +1,4 @@
 package io.jenkins.plugins.casc.secretsmanager;
-
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.secretsmanager.util.AWSSecretsManagerRule;
@@ -13,8 +9,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.jvnet.hudson.test.JenkinsRule;
-
-import java.nio.ByteBuffer;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
@@ -35,8 +33,7 @@ public class SecretSourceIT {
                     .set("AWS_ACCESS_KEY_ID", "fake")
                     .set("AWS_SECRET_ACCESS_KEY", "fake")
                     // Invent 2 environment variables which don't technically exist in AWS SDK
-                    .set("AWS_SERVICE_ENDPOINT", secretsManager::getServiceEndpoint)
-                    .set("AWS_SIGNING_REGION", secretsManager::getSigningRegion))
+                    .set("AWS_SERVICE_ENDPOINT", secretsManager::getServiceEndpoint))
             .around(jenkins);
 
     private ConfigurationContext context;
@@ -65,7 +62,7 @@ public class SecretSourceIT {
         final var foo = createSecret(SECRET_STRING);
 
         // When
-        final var secret = revealSecret(foo.getName());
+        final var secret = revealSecret(foo.name());
 
         // Then
         assertThat(secret).isEqualTo(SECRET_STRING);
@@ -74,10 +71,10 @@ public class SecretSourceIT {
     @Test
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
         final var foo = createSecret(SECRET_STRING);
-        deleteSecret(foo.getName());
+        deleteSecret(foo.name());
 
         assertThatIOException()
-                .isThrownBy(() -> revealSecret(foo.getName()));
+                .isThrownBy(() -> revealSecret(foo.name()));
     }
 
     @Test
@@ -85,27 +82,29 @@ public class SecretSourceIT {
         final var foo = createSecret(SECRET_BINARY);
 
         assertThatIOException()
-                .isThrownBy(() -> revealSecret(foo.getName()));
+                .isThrownBy(() -> revealSecret(foo.name()));
     }
 
-    private CreateSecretResult createSecret(String secretString) {
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(secretString);
+    private CreateSecretResponse createSecret(String secretString) {
+        final var request = CreateSecretRequest.builder()
+                .name(CredentialNames.random())
+                .secretString(secretString)
+                .build();
 
         return secretsManager.getClient().createSecret(request);
     }
 
-    private CreateSecretResult createSecret(byte[] secretBinary) {
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretBinary(ByteBuffer.wrap(secretBinary));
+    private CreateSecretResponse createSecret(byte[] secretBinary) {
+        final var request = CreateSecretRequest.builder()
+                .name(CredentialNames.random())
+                .secretBinary(SdkBytes.fromByteArray(secretBinary))
+                .build();
 
         return secretsManager.getClient().createSecret(request);
     }
 
     private void deleteSecret(String secretId) {
-        final var request = new DeleteSecretRequest().withSecretId(secretId);
+        final var request = DeleteSecretRequest.builder().secretId(secretId).build();
         secretsManager.getClient().deleteSecret(request);
     }
 
