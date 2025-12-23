@@ -15,7 +15,7 @@ import java.net.URI;
  */
 public class AWSSecretsManagerRule extends ExternalResource {
 
-    private static final DockerImageName MOTO_IMAGE = DockerImageName.parse("motoserver/moto:2.3.0");
+    private static final DockerImageName MOTO_IMAGE = DockerImageName.parse("motoserver/moto:5.1.18");
 
     private final GenericContainer<?> secretsManager = new GenericContainer<>(MOTO_IMAGE)
             .withExposedPorts(5000)
