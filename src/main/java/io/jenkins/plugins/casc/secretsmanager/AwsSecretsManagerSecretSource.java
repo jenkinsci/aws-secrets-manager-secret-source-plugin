@@ -20,7 +20,7 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
     private static final Logger LOG = Logger.getLogger(AwsSecretsManagerSecretSource.class.getName());
 
     /**
-     * In AWS SDK V2, this property is supported as standard and is called AWS_ENDPOINT_OVERRIDE.
+     * In AWS SDK V2, this property is supported as standard and is called AWS_ENDPOINT_URL.
      * <p>
      * We support the old name of the property for backward compatibility, so that Jenkins installations which used
      * older versions of this plugin can keep working.

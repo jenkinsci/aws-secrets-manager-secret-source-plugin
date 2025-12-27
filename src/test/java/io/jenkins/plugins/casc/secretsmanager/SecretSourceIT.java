@@ -32,8 +32,8 @@ public class SecretSourceIT {
             .around(new DeferredEnvironmentVariables()
                     .set("AWS_ACCESS_KEY_ID", "fake")
                     .set("AWS_SECRET_ACCESS_KEY", "fake")
-                    // Invent 2 environment variables which don't technically exist in AWS SDK
-                    .set("AWS_SERVICE_ENDPOINT", secretsManager::getServiceEndpoint))
+                    .set("AWS_REGION", "us-east-1")
+                    .set("AWS_ENDPOINT_URL", secretsManager::getServiceEndpoint))
             .around(jenkins);
 
     private ConfigurationContext context;
