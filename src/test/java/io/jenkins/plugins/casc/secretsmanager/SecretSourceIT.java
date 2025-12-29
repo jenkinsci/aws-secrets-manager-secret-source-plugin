@@ -10,9 +10,7 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.jvnet.hudson.test.JenkinsRule;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
-import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
@@ -86,26 +84,23 @@ public class SecretSourceIT {
     }
 
     private CreateSecretResponse createSecret(String secretString) {
-        final var request = CreateSecretRequest.builder()
-                .name(CredentialNames.random())
-                .secretString(secretString)
-                .build();
-
-        return secretsManager.getClient().createSecret(request);
+        return secretsManager.getClient().createSecret(secret -> {
+            secret.name(CredentialNames.random());
+            secret.secretString(secretString);
+        });
     }
 
     private CreateSecretResponse createSecret(byte[] secretBinary) {
-        final var request = CreateSecretRequest.builder()
-                .name(CredentialNames.random())
-                .secretBinary(SdkBytes.fromByteArray(secretBinary))
-                .build();
-
-        return secretsManager.getClient().createSecret(request);
+        return secretsManager.getClient().createSecret(secret -> {
+            secret.name(CredentialNames.random());
+            secret.secretBinary(SdkBytes.fromByteArray(secretBinary));
+        });
     }
 
     private void deleteSecret(String secretId) {
-        final var request = DeleteSecretRequest.builder().secretId(secretId).build();
-        secretsManager.getClient().deleteSecret(request);
+        secretsManager.getClient().deleteSecret(secret -> {
+            secret.secretId(secretId);
+        });
     }
 
     private String revealSecret(String id) {

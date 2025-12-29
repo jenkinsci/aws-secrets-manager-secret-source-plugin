@@ -9,7 +9,6 @@ import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerExcept
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,15 +17,6 @@ import java.util.logging.Logger;
 public class AwsSecretsManagerSecretSource extends SecretSource {
 
     private static final Logger LOG = Logger.getLogger(AwsSecretsManagerSecretSource.class.getName());
-
-    /**
-     * In AWS SDK V2, this property is supported as standard and is called AWS_ENDPOINT_URL.
-     * <p>
-     * We support the old name of the property for backward compatibility, so that Jenkins installations which used
-     * older versions of this plugin can keep working.
-     */
-    @Deprecated
-    private static final String AWS_SERVICE_ENDPOINT = "AWS_SERVICE_ENDPOINT";
 
     private transient SecretsManagerClient client = null;
 
@@ -55,29 +45,9 @@ public class AwsSecretsManagerSecretSource extends SecretSource {
     @Override
     public void init() {
         try {
-            client = createClient();
+            client = SecretsManagerClient.create();
         } catch (SdkClientException e) {
             LOG.log(Level.WARNING, "Could not set up AWS Secrets Manager client. Reason: {0}", e.getMessage());
         }
-    }
-
-    private static SecretsManagerClient createClient() throws SdkClientException {
-        final var builder = SecretsManagerClient.builder();
-
-        // Provided for backwards compatibility
-        final var maybeServiceEndpoint = getServiceEndpoint();
-        if (maybeServiceEndpoint.isPresent()) {
-            final var serviceEndpoint = maybeServiceEndpoint.get();
-
-            LOG.log(Level.CONFIG, "Custom Service Endpoint: {0}", serviceEndpoint);
-
-            builder.endpointOverride(URI.create(serviceEndpoint));
-        }
-
-        return builder.build();
-    }
-
-    private static Optional<String> getServiceEndpoint() {
-        return Optional.ofNullable(System.getenv(AWS_SERVICE_ENDPOINT));
     }
 }

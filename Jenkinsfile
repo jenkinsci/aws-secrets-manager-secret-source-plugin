@@ -1,4 +1,4 @@
-def recentLTS = "2.479.3"
+def recentLTS = "2.504.3"
 def configurations = [
     [ platform: "linux", jdk: "17", jenkins: null ],
     [ platform: "linux", jdk: "17", jenkins: recentLTS ],
